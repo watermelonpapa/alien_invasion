@@ -15,13 +15,26 @@ class AlienInvasion:
 
     def run_game(self):
         while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    sys.exit()
-
-            self.screen.fill(self.bg_color)
-            self.ship.blitme()
-            pygame.display.flip()#双缓冲技术显示
+            self._check_events()
+            self.ship.update()
+            self._update_screen()
+            
+    def _check_events(self):#辅助方法，加下划线
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RIGHT:
+                    self.ship.moving_right = True
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_RIGHT:
+                    self.ship.moving_right = False    
+    
+    def _update_screen(self):
+        self.screen.fill(self.bg_color)
+        self.ship.blitme()
+        pygame.display.flip()#双缓冲技术显示
+        
 
 if __name__ == '__main__':#__name__是内置属性，看模块是否是按主程序运行。
     ai = AlienInvasion()
