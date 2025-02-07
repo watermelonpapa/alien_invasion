@@ -2,6 +2,7 @@ import sys
 import pygame
 from settings import Settings
 from ship import Ship
+from bullet import Bullet
 
 class AlienInvasion:
     def __init__(self):
@@ -12,12 +13,21 @@ class AlienInvasion:
         pygame.display.set_caption("Alien Invasion")
         self.bg_color = self.settings.bg_color
         self.ship = Ship(self)
+        self.bullets = pygame.sprite.Group()#bullets group
 
     def run_game(self):
         while True:
             self._check_events()
             self.ship.update()
+            self._update_bulltes()
             self._update_screen()
+
+    def _update_bulltes(self):
+        self.bullets.update()
+        for bullet in self.bullets.copy():# 遍历的时候不能删除，因此遍历副本
+            if bullet.rect.bottom < 0:
+                self.bullets.remove(bullet)
+
             
     def _check_events(self):#辅助方法，加下划线
         for event in pygame.event.get():
@@ -35,6 +45,8 @@ class AlienInvasion:
                 self.ship.moving_left = True
             elif event.key == pygame.K_q:
                 sys.exit()
+            elif event.key == pygame.K_SPACE:
+                self._fire_bullets()
     
     def _check_keyup_events(self,event):
             if event.key == pygame.K_RIGHT:
@@ -42,9 +54,16 @@ class AlienInvasion:
             elif event.key == pygame.K_LEFT:
                 self.ship.moving_left = False  
     
+    def _fire_bullets(self):
+        if len(self.bullets) < self.settings.bullets_allowed:
+            new_bullet = Bullet(self)
+            self.bullets.add(new_bullet)
+    
     def _update_screen(self):
         self.screen.fill(self.bg_color)
         self.ship.blitme()
+        for bullet in self.bullets.sprites():
+            bullet.draw_bullet()
         pygame.display.flip()#双缓冲技术显示
         
 
