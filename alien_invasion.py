@@ -23,7 +23,9 @@ class AlienInvasion:
             self._check_events()
             self.ship.update()
             self._update_bulltes()
+            self._update_aliens() 
             self._update_screen()
+
 
     def _create_fleet(self):
         alien = Alien(self)
@@ -50,12 +52,28 @@ class AlienInvasion:
         
         self.aliens.add(alien)
 
+    def _update_aliens(self):
+        self._check_fleet_edges()
+        self.aliens.update()
+
+    def _check_fleet_edges(self):
+        for alien in self.aliens.sprites():
+            if alien.check_edges():
+                self._change_fleet_direction()
+                break
+
+    def _change_fleet_direction(self):
+        for alien in self.aliens.sprites():
+            alien.rect.y += self.settings.fleet_drop_speed
+        self.settings.fleet_direction *= -1
 
     def _update_bulltes(self):
         self.bullets.update()
         for bullet in self.bullets.copy():# 遍历的时候不能删除，因此遍历副本
             if bullet.rect.bottom < 0:
                 self.bullets.remove(bullet)
+        
+        collisions = pygame.sprite.groupcollide(self.bullets,self.aliens,True,True)
 
             
     def _check_events(self):#辅助方法，加下划线
