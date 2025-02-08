@@ -8,7 +8,7 @@ class Ship:
         self.rect.midbottom = self.screen_rect.midbottom
         self.moving_right = False
         self.moving_left = False
-        self.ship_speed = 2
+        self.ship_speed = ai_game.settings.ship_speed
         
     def update(self):
         if self.moving_right and self.rect.right < self.screen_rect.right:
@@ -18,3 +18,7 @@ class Ship:
 
     def blitme(self):
         self.screen.blit(self.image,self.rect)
+
+    def center_ship(self):
+        self.rect.midbottom = self.screen_rect.midbottom
+        self.x = float(self.rect.x) 

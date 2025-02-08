@@ -1,9 +1,12 @@
 import sys
+from time import sleep
 import pygame
 from settings import Settings
 from ship import Ship
 from bullet import Bullet
 from alien import Alien
+from game_stats import GameStats
+from button import Button
 
 class AlienInvasion:
     def __init__(self):
@@ -13,17 +16,20 @@ class AlienInvasion:
                                                self.settings.screen_height))
         pygame.display.set_caption("Alien Invasion")
         self.bg_color = self.settings.bg_color
+        self.stats = GameStats(self)
         self.ship = Ship(self)
         self.bullets = pygame.sprite.Group()#bullets group
         self.aliens = pygame.sprite.Group()
         self._create_fleet()
+        self.play_button = Button(self,"play")
 
     def run_game(self):
         while True:
             self._check_events()
-            self.ship.update()
-            self._update_bulltes()
-            self._update_aliens() 
+            if self.stats.game_active:
+                self.ship.update()
+                self._update_bulltes()
+                self._update_aliens() 
             self._update_screen()
 
 
@@ -55,7 +61,17 @@ class AlienInvasion:
     def _update_aliens(self):
         self._check_fleet_edges()
         self.aliens.update()
-
+        if pygame.sprite.spritecollideany(self.ship,self.aliens):
+            self._ship_hit()
+        self._check_aliens_bottom()
+            
+    def _check_aliens_bottom(self):
+        screen_rect = self.screen.get_rect()
+        for alien in self.aliens.sprites():
+            if alien.rect.bottom > screen_rect.bottom:
+                self._ship_hit()
+                break
+    
     def _check_fleet_edges(self):
         for alien in self.aliens.sprites():
             if alien.check_edges():
@@ -72,8 +88,24 @@ class AlienInvasion:
         for bullet in self.bullets.copy():# 遍历的时候不能删除，因此遍历副本
             if bullet.rect.bottom < 0:
                 self.bullets.remove(bullet)
-        
+        self._check_bullet_alien_collisions()
+
+    def _check_bullet_alien_collisions(self):
         collisions = pygame.sprite.groupcollide(self.bullets,self.aliens,True,True)
+        if not self.aliens:
+            self.bullets.empty()
+            self._create_fleet()
+    
+    def _ship_hit(self):
+        if self.stats.ships_left > 0:
+            self.stats.ships_left -= 1
+            self.aliens.empty()
+            self.bullets.empty()
+            self._create_fleet()
+            self.ship.center_ship()
+            sleep(1)
+        else:
+            self.stats.game_active = False
 
             
     def _check_events(self):#辅助方法，加下划线
@@ -84,6 +116,13 @@ class AlienInvasion:
                 self._check_keydown_events(event)
             elif event.type == pygame.KEYUP:
                 self._check_keyup_events(event)
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                self._check_play_button(mouse_pos)
+    
+    def _check_play_button(self,mouse_pos):
+        if self.play_button.rect.collidepoint(mouse_pos):
+            self.stats.game_active = True
     
     def _check_keydown_events(self,event):
             if event.key == pygame.K_RIGHT:
@@ -112,6 +151,8 @@ class AlienInvasion:
         for bullet in self.bullets.sprites():
             bullet.draw_bullet()
         self.aliens.draw(self.screen)
+        if not self.stats.game_active:
+            self.play_button.draw_button()
         pygame.display.flip()#双缓冲技术显示
         
 
