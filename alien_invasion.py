@@ -125,14 +125,15 @@ class AlienInvasion:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
-            elif event.type == pygame.KEYDOWN:
-                self._check_keydown_events(event)
-            elif event.type == pygame.KEYUP:
-                self._check_keyup_events(event)
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
                 self._check_play_button(mouse_pos)
-    
+            if self.stats.game_active:
+                if event.type == pygame.KEYDOWN:
+                    self._check_keydown_events(event)
+                elif event.type == pygame.KEYUP:
+                    self._check_keyup_events(event)
+        
     def _check_play_button(self,mouse_pos):
         button_clicked = self.play_button.rect.collidepoint(mouse_pos)
         if button_clicked and not self.stats.game_active:
@@ -145,6 +146,7 @@ class AlienInvasion:
             self.ship.center_ship()
             self.settings.initialize_dynamic_settings()
             self.sb.prep_score()
+            self.stats.level = 0
             self.sb.prep_level()
             self.sb.prep_ships()
     
